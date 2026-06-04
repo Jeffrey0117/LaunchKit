@@ -34,6 +34,10 @@ function renderPage(config, slug) {
   const ogDesc = escapeHtml(og.description || hero.subheadline || '');
   const ogImage = og.imageUrl ? `<meta property="og:image" content="${escapeHtml(og.imageUrl)}"><meta name="twitter:image" content="${escapeHtml(og.imageUrl)}">` : '';
 
+  // ─── Themed favicon (rocket = launch), tinted by the site's own colors ───
+  const faviconSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='${primary}'/><path d='M16 6c4 4 5 9 5 13H11c0-4 1-9 5-13z' fill='#fff'/><path d='M11 19l-3 4 5-2z' fill='#fff' opacity='.85'/><path d='M21 19l3 4-5-2z' fill='#fff' opacity='.85'/><circle cx='16' cy='14' r='2.2' fill='${primary}'/><path d='M13 22l3 6 3-6z' fill='${accent}'/></svg>`;
+  const faviconHref = `data:image/svg+xml,${encodeURIComponent(faviconSvg)}`;
+
   // ─── Hero Section ───
   const heroSection = `
     <section class="hero">
@@ -153,6 +157,7 @@ function renderPage(config, slug) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${ogTitle}</title>
+  <link rel="icon" href="${faviconHref}" type="image/svg+xml">
   <meta property="og:title" content="${ogTitle}">
   <meta property="og:description" content="${ogDesc}">
   <meta property="og:type" content="website">
