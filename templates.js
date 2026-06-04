@@ -13,6 +13,8 @@ function escapeHtml(str) {
 // ─── Landing Page Renderer ───
 
 function renderPage(config, slug) {
+  // Raw-HTML escape hatch: for bespoke, hand-crafted pages that the JSON template can't express.
+  if (config && typeof config.html === 'string' && config.html.trim()) return config.html;
   const hero = config.hero || {};
   const features = config.features || [];
   const pricing = config.pricing || null;
