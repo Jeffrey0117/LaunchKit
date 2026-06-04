@@ -404,6 +404,7 @@ function renderPage(config, slug) {
       display: grid;
       gap: clamp(1rem, 2vw, 1.5rem);
       align-items: start;
+      margin-top: 1.75rem;
     }
     .pricing-cols-1 { grid-template-columns: minmax(0, 420px); justify-content: center; }
     .pricing-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
