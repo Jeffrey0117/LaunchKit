@@ -37,6 +37,8 @@ function renderPage(config, slug) {
   // ─── Themed favicon (rocket = launch), tinted by the site's own colors ───
   const faviconSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='${primary}'/><path d='M16 6c4 4 5 9 5 13H11c0-4 1-9 5-13z' fill='#fff'/><path d='M11 19l-3 4 5-2z' fill='#fff' opacity='.85'/><path d='M21 19l3 4-5-2z' fill='#fff' opacity='.85'/><circle cx='16' cy='14' r='2.2' fill='${primary}'/><path d='M13 22l3 6 3-6z' fill='${accent}'/></svg>`;
   const faviconHref = `data:image/svg+xml,${encodeURIComponent(faviconSvg)}`;
+  // iOS home-screen icon — server renders a themed 180x180 PNG from these colors
+  const touchIconHref = `/apple-touch-icon.png?c=${encodeURIComponent(primary.replace('#', ''))}&a=${encodeURIComponent(accent.replace('#', ''))}`;
 
   // ─── Hero Section ───
   const heroSection = `
@@ -158,6 +160,7 @@ function renderPage(config, slug) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${ogTitle}</title>
   <link rel="icon" href="${faviconHref}" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="${touchIconHref}">
   <meta property="og:title" content="${ogTitle}">
   <meta property="og:description" content="${ogDesc}">
   <meta property="og:type" content="website">

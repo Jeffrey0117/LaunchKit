@@ -2,6 +2,7 @@ const http = require('http');
 const { URL } = require('url');
 const { getDb } = require('./db');
 const { renderPage, render404 } = require('./templates');
+const { renderTouchIcon } = require('./icon');
 
 const PORT = parseInt(process.env.PORT || '4020', 10);
 const TOKEN = process.env.LAUNCHKIT_TOKEN || '';
@@ -60,6 +61,17 @@ function isValidSlug(slug) {
 // ─── Routes ───
 
 const routes = {
+  'GET /apple-touch-icon.png': async (req, res) => {
+    const q = new URL(req.url, `http://localhost:${PORT}`).searchParams;
+    const png = renderTouchIcon(q.get('c'), q.get('a'));
+    res.writeHead(200, {
+      'Content-Type': 'image/png',
+      'Cache-Control': 'public, max-age=604800, immutable',
+      'Access-Control-Allow-Origin': '*',
+    });
+    res.end(png);
+  },
+
   'GET /api/health': async (_req, res) => {
     const db = getDb();
     const { total } = db.prepare('SELECT COUNT(*) as total FROM pages').get();
