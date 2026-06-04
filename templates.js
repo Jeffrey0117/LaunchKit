@@ -91,6 +91,7 @@ function renderPage(config, slug) {
               ${plan.badge ? `<div class="pricing-badge">${escapeHtml(plan.badge)}</div>` : ''}
               ${plan.name ? `<h3 class="pricing-name">${escapeHtml(plan.name)}</h3>` : ''}
               ${plan.description ? `<p class="pricing-desc">${escapeHtml(plan.description)}</p>` : ''}
+              ${plan.originalPrice != null && plan.originalPrice !== '' ? `<div class="pricing-anchor"><span class="pricing-original">${escapeHtml(plan.currency || 'NT$')}${escapeHtml(String(plan.originalPrice))}</span>${(Number(plan.originalPrice) > Number(plan.price)) ? `<span class="pricing-save">省 ${Math.round((1 - Number(plan.price) / Number(plan.originalPrice)) * 100)}%</span>` : ''}</div>` : ''}
               <div class="pricing-price">
                 <span class="pricing-currency">${escapeHtml(plan.currency || 'NT$')}</span>
                 <span class="pricing-amount">${escapeHtml(String(plan.price != null ? plan.price : ''))}</span>
@@ -481,6 +482,16 @@ function renderPage(config, slug) {
     .pricing-period {
       font-size: 0.95rem;
       color: var(--text-muted);
+    }
+    .pricing-anchor {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.25rem;
+    }
+    .pricing-original {
+      font-size: 1.05rem; color: var(--text-muted); text-decoration: line-through;
+    }
+    .pricing-save {
+      font-size: 0.8rem; font-weight: 800; color: #fff;
+      background: var(--accent); padding: 2px 8px; border-radius: 999px;
     }
     .pricing-features {
       list-style: none;
