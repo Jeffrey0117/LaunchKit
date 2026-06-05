@@ -40,14 +40,21 @@ function html(res, status, body) {
   res.end(body);
 }
 
+// Loopback-trust is OPT-IN via env and only safe where the app is NOT behind a
+// proxy: a hosted PaaS (Render) terminates at its own router and connects to the
+// app over loopback, so remoteAddress is 127.0.0.1 for EVERY request — trusting
+// it there would leave writes wide open. So we only enable it on the home box
+// (set LAUNCHKIT_TRUST_LOOPBACK=1 in the box .env, NEVER on the public host),
+// where the cloudpipe MCP discovery legitimately calls localhost:PORT.
+const TRUST_LOOPBACK = process.env.LAUNCHKIT_TRUST_LOOPBACK === '1';
+
 function requireAuth(req) {
-  // On-box callers (e.g. the cloudpipe MCP discovery, which hits localhost:PORT)
-  // are trusted without a token. Public traffic arrives via the cloudpipe proxy
-  // / Render, so its remoteAddress is never loopback — those writes MUST carry a
-  // valid token. With no token set, non-loopback writes are blocked (closed by
-  // default) so a public parasite host can't be defaced anonymously.
-  const ra = (req.socket && req.socket.remoteAddress) || '';
-  if (ra === '127.0.0.1' || ra === '::1' || ra === '::ffff:127.0.0.1') return true;
+  if (TRUST_LOOPBACK) {
+    const ra = (req.socket && req.socket.remoteAddress) || '';
+    if (ra === '127.0.0.1' || ra === '::1' || ra === '::ffff:127.0.0.1') return true;
+  }
+  // Public host (Render): a token is mandatory. With none set, writes are blocked
+  // (closed by default) so the parasite host can't be defaced anonymously.
   if (!TOKEN) return false;
   const auth = req.headers.authorization || '';
   const bearer = auth.startsWith('Bearer ') ? auth.slice(7) : '';
