@@ -41,7 +41,14 @@ function html(res, status, body) {
 }
 
 function requireAuth(req) {
-  if (!TOKEN) return true;
+  // On-box callers (e.g. the cloudpipe MCP discovery, which hits localhost:PORT)
+  // are trusted without a token. Public traffic arrives via the cloudpipe proxy
+  // / Render, so its remoteAddress is never loopback — those writes MUST carry a
+  // valid token. With no token set, non-loopback writes are blocked (closed by
+  // default) so a public parasite host can't be defaced anonymously.
+  const ra = (req.socket && req.socket.remoteAddress) || '';
+  if (ra === '127.0.0.1' || ra === '::1' || ra === '::ffff:127.0.0.1') return true;
+  if (!TOKEN) return false;
   const auth = req.headers.authorization || '';
   const bearer = auth.startsWith('Bearer ') ? auth.slice(7) : '';
   return bearer === TOKEN;
