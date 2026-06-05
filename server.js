@@ -1,6 +1,6 @@
 const http = require('http');
 const { URL } = require('url');
-const { getDb } = require('./db');
+const { countPages, upsertPage, listPages, deletePage, getPageConfig } = require('./db');
 const { renderPage, render404 } = require('./templates');
 const { renderTouchIcon } = require('./icon');
 
@@ -73,8 +73,7 @@ const routes = {
   },
 
   'GET /api/health': async (_req, res) => {
-    const db = getDb();
-    const { total } = db.prepare('SELECT COUNT(*) as total FROM pages').get();
+    const total = await countPages();
     json(res, 200, { status: 'ok', service: 'launchkit', totalPages: total });
   },
 
@@ -98,15 +97,7 @@ const routes = {
       return json(res, 400, { error: 'config object is required' });
     }
 
-    const db = getDb();
-    db.prepare(`
-      INSERT INTO pages (slug, title, config, updated_at)
-      VALUES (?, ?, ?, datetime('now'))
-      ON CONFLICT(slug) DO UPDATE SET
-        title = excluded.title,
-        config = excluded.config,
-        updated_at = datetime('now')
-    `).run(slug, title, JSON.stringify(config));
+    await upsertPage(slug, title, config);
 
     json(res, 200, { success: true, slug, url: `/${slug}` });
   },
@@ -116,10 +107,7 @@ const routes = {
       return json(res, 401, { error: 'Unauthorized' });
     }
 
-    const db = getDb();
-    const pages = db.prepare(
-      'SELECT slug, title, created_at, updated_at FROM pages ORDER BY updated_at DESC'
-    ).all();
+    const pages = await listPages();
 
     json(res, 200, { pages });
   },
@@ -157,10 +145,9 @@ const server = http.createServer(async (req, res) => {
       }
 
       const slug = deleteMatch[1];
-      const db = getDb();
-      const result = db.prepare('DELETE FROM pages WHERE slug = ?').run(slug);
+      const removed = await deletePage(slug);
 
-      if (result.changes === 0) {
+      if (!removed) {
         return json(res, 404, { error: 'Page not found' });
       }
       return json(res, 200, { success: true, deleted: slug });
@@ -172,11 +159,10 @@ const server = http.createServer(async (req, res) => {
 
       // Only single-segment paths (no nested slashes)
       if (slug && !slug.includes('/') && slug.length <= 50) {
-        const db = getDb();
-        const row = db.prepare('SELECT config FROM pages WHERE slug = ?').get(slug);
+        const configStr = await getPageConfig(slug);
 
-        if (row) {
-          const config = JSON.parse(row.config);
+        if (configStr) {
+          const config = JSON.parse(configStr);
           return html(res, 200, renderPage(config, slug));
         }
 
